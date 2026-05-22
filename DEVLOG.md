@@ -31,17 +31,39 @@
 - Start building the UI components (landing page hero, form layout)
 - Set up Firebase project and database schema
 
-## Day 2 — 2026-05-21
+## Day 2 — 2026-05-22
 
-**Hours worked:**
+**Hours worked:** 5
 
 **What I did:**
+- Built the complete landing page with premium dark theme: hero section with gradient headline and animated floating orbs, How It Works (3-step glass cards), Tools We Analyze (8-tool grid with brand colors), mocked testimonials section (clearly labeled), final CTA, and footer
+- Created a sticky glassmorphism navbar with mobile hamburger menu and smooth scroll anchors
+- Built the complete spend input form supporting all 8 AI tools (Cursor, GitHub Copilot, Claude, ChatGPT, Anthropic API, OpenAI API, Gemini, Windsurf)
+- Each tool has: plan selector dropdown (populated from pricing data), seats input, auto-calculated monthly spend (with manual override option)
+- Added team size input (1-1000) and primary use case selector (coding/writing/data/research/mixed) as pill buttons
+- Implemented animated running total counter with ease-out cubic animation (requestAnimationFrame)
+- Built localStorage persistence — form state survives page reloads (key: costpilot-form-state)
+- Added Zod validation schema for form submission
+- Created TypeScript types module (ToolId, ToolEntry, AuditInput, AuditResult, etc.)
+- Created pricing data module with all 8 tools and their plans as TypeScript constants
+- Created utility functions (cn for class merging, formatCurrency)
+- Set up the full CSS design system: custom animations (fadeInUp, slideIn, pulse-glow, float, orb-drift, shimmer), glass card styles, gradient text, CTA button effects, custom scrollbar
+- Fixed CSS @import ordering for Tailwind v4 and React 19 useRef compatibility
 
 **What I learned:**
+- Tailwind v4 uses `@import "tailwindcss"` instead of `@tailwind` directives — and all CSS @import rules must come before any other rules per CSS spec
+- React 19 requires explicit initial value for useRef (can't just do `useRef<number>()` anymore, need `useRef<number | undefined>(undefined)`)
+- Auto-calculating spend from plan × seats while allowing manual override requires careful state management — need to track whether user has manually edited the spend field
 
 **Blockers / what I'm stuck on:**
+- Need to build the audit engine (rule-based logic for plan right-sizing, cross-vendor alternatives)
+- Need to wire up the form submission to navigate to results page with audit data
 
 **Plan for tomorrow:**
+- Build the complete audit engine with rule-based logic
+- Write ≥5 unit tests for the audit engine
+- Build the audit results page with per-tool breakdown and hero savings banner
+- Wire up the form → audit → results flow
 
 ## Day 3 — 2026-05-22
 
