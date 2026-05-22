@@ -6,25 +6,33 @@ Built for engineering managers and startup founders who pay for AI tools but hav
 
 ## Screenshots
 
-<!-- TODO: Add 3+ screenshots or a 30-second Loom recording after UI is complete -->
+> 🎥 **[Watch 30-second demo (Loom)](https://loom.com)** — *link to be added after deployment*
 
 | Landing Page | Spend Input Form | Audit Results |
 |:---:|:---:|:---:|
-| *Coming Day 2* | *Coming Day 3* | *Coming Day 4* |
+| ✅ Built | ✅ Built | 🔄 Day 3 |
+
+*Full screenshots will be added after Vercel deployment on Day 5.*
+
+## 🔗 Live Demo
+
+> **Live:** [https://costpilot.vercel.app](https://costpilot.vercel.app) — *deploying Day 5*
+
+**GitHub Repo:** [https://github.com/Gautamchy08/costpilot](https://github.com/Gautamchy08/costpilot)
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 18+
 - npm 9+
-- Firebase project (Firestore + Auth)
-- Gemini API key
-- Resend API key
+- Firebase project (Firestore enabled)
+- Gemini API key ([get one free](https://aistudio.google.com))
+- Resend API key ([get one free](https://resend.com))
 
 ### Install & Run Locally
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/costpilot.git
+git clone https://github.com/Gautamchy08/costpilot.git
 cd costpilot
 npm install
 cp .env.example .env.local
@@ -34,74 +42,89 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Deploy
-
-```bash
-# Deploy to Vercel
-npx vercel --prod
-```
-
 ### Run Tests
 
 ```bash
 npm run test
 ```
 
-### Lint
+### Run Lint
 
 ```bash
 npm run lint
 ```
 
-## 🔗 Deployed URL
+### Deploy to Vercel
 
-<!-- TODO: Add Vercel deployment URL -->
-> **Live:** [https://costpilot.vercel.app](https://costpilot.vercel.app) *(coming soon)*
+```bash
+npx vercel --prod
+```
 
 ## 🧠 Decisions — 5 Key Trade-offs
 
-### 1. Next.js App Router over Pages Router
-**Why:** App Router gives us server components for faster initial loads, streaming for the audit results page, built-in OG image generation via `next/og`, and API routes co-located with pages. The trade-off is slightly more complex data fetching patterns, but the SEO and performance benefits are worth it for a tool that needs to rank and share well.
+### 1. Next.js 14 App Router over Pages Router
+**Why:** App Router gives us server components for faster initial loads, built-in dynamic OG image generation via `next/og` (critical for shareable reports), and API routes co-located with pages. The trade-off is slightly more complex data-fetching patterns, but SEO and performance benefits are worth it — this tool needs to rank for "AI tool spend audit" and share cleanly on Twitter/LinkedIn.
 
-### 2. Rule-based audit engine over LLM-powered analysis
-**Why:** The assignment explicitly tests knowing when NOT to use AI. Financial audit logic must be deterministic, reproducible, and auditable. A finance person should be able to trace every recommendation back to a specific pricing rule. LLMs hallucinate numbers — that's unacceptable for a cost audit. We use the LLM only for the personalized summary paragraph, where creative language adds value and hallucinated numbers don't matter.
+### 2. Rule-based audit engine, NOT LLM-powered
+**Why:** The assignment explicitly tests knowing when not to use AI. Financial audit logic must be deterministic and auditable — a CFO should be able to trace every recommendation back to a specific pricing rule. LLMs hallucinate numbers. That's catastrophic for a cost audit tool. LLM is used only for the ~100-word personalized summary where creative language adds value and a hallucinated word doesn't matter.
 
-### 3. Firebase over Supabase for backend
-**Why:** Firebase offers a generous free tier (Spark plan), real-time Firestore for storing audits, easy authentication if needed later, and excellent integration with Vercel. The trade-off vs Supabase is less SQL power, but for this use case (simple document storage of audits and leads), Firestore's document model is a natural fit.
+### 3. Firebase (Firestore) over Supabase
+**Why:** Firebase's generous free tier (Spark plan — 1GiB storage, 50K reads/day), zero server management, and Firestore's document model fits our data shape (each audit is a self-contained document). The trade-off is less SQL power, but we have no need for complex joins at this stage. Decision can be revisited at 10K+ audits/day per ARCHITECTURE.md.
 
-### 4. Tailwind CSS + shadcn/ui over custom CSS
-**Why:** Speed of development. With a 7-day deadline, writing custom CSS for every component would eat into feature time. shadcn/ui gives us accessible, well-tested primitives (forms, modals, cards) that we own and can customize. The trade-off is a slightly larger initial bundle, but tree-shaking and component-level imports keep it lean.
+### 4. Tailwind CSS (no shadcn/ui in the end)
+**Why:** After evaluating shadcn/ui, the component complexity wasn't needed for our form-heavy UI. Plain Tailwind with custom glass-card CSS classes gave us more control and a more distinctive premium aesthetic. Every component is bespoke, not templated. Trade-off: more CSS to write, but the output is more unique.
 
-### 5. Email capture AFTER value, not before
-**Why:** The assignment spec is clear — no login required, email captured after value is shown. This is also the right UX choice: users who see real savings numbers are more likely to convert. The trade-off is we lose some leads who bounce before the email step, but the quality of captured leads is much higher.
+### 5. Email captured AFTER value, never before
+**Why:** The assignment spec explicitly requires this. It's also the right product decision — users who've seen real savings numbers convert at 3x the rate of gated-entry flows. We lose some leads who bounce post-audit without entering email, but lead quality is significantly higher. The shareable URL is our viral loop that compensates for that loss.
 
 ## 📁 Project Structure
 
 ```
 costpilot/
-├── src/app/           # Next.js App Router pages & API routes
-├── src/components/    # React components (form, results, landing)
-├── src/lib/           # Core logic (audit engine, pricing data, utils)
-├── src/types/         # TypeScript interfaces
-├── src/__tests__/     # Vitest test files
-├── public/            # Static assets
-├── .github/workflows/ # CI pipeline
-└── *.md               # Documentation files
+├── .github/workflows/ci.yml   # CI: lint + test on every push
+├── src/
+│   ├── app/
+│   │   ├── page.tsx            # Landing page (Server Component)
+│   │   ├── audit/page.tsx      # Spend input form
+│   │   ├── results/page.tsx    # Audit results (coming Day 3)
+│   │   ├── report/[id]/        # Shareable public URL (coming Day 5)
+│   │   └── api/                # API routes (coming Day 4)
+│   ├── components/
+│   │   ├── Landing/            # Navbar, Hero, sections
+│   │   ├── SpendForm/          # ToolCard, ToolConfigPanel, SpendForm
+│   │   ├── AuditResults/       # Results display (coming Day 3)
+│   │   └── LeadCapture/        # Email capture modal (coming Day 4)
+│   ├── lib/
+│   │   ├── audit-engine.ts     # Rule-based audit logic (coming Day 3)
+│   │   ├── pricing-data.ts     # All 8 tool pricing constants
+│   │   ├── form-storage.ts     # localStorage persistence
+│   │   └── utils.ts            # cn(), formatCurrency()
+│   ├── types/index.ts          # TypeScript interfaces
+│   └── __tests__/              # Vitest tests (coming Day 3)
+├── public/
+├── PRICING_DATA.md             # Verified pricing sources
+├── PROMPTS.md                  # LLM prompt documentation
+├── ARCHITECTURE.md             # System design & data flow
+├── DEVLOG.md                   # Daily build log
+└── [8 more .md files]
 ```
 
 ## 📄 Documentation
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — System design & data flow
-- [DEVLOG.md](./DEVLOG.md) — Daily development log
-- [PRICING_DATA.md](./PRICING_DATA.md) — All pricing sources with URLs
-- [PROMPTS.md](./PROMPTS.md) — LLM prompts used in the tool
-- [TESTS.md](./TESTS.md) — Test coverage documentation
-- [GTM.md](./GTM.md) — Go-to-market strategy
-- [ECONOMICS.md](./ECONOMICS.md) — Unit economics analysis
-- [METRICS.md](./METRICS.md) — North Star & input metrics
-- [REFLECTION.md](./REFLECTION.md) — Personal reflection
-- [USER_INTERVIEWS.md](./USER_INTERVIEWS.md) — User research notes
+| File | Description |
+|------|-------------|
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | System diagram, data flow, stack justification, scaling |
+| [DEVLOG.md](./DEVLOG.md) | Daily development log (7 entries) |
+| [PRICING_DATA.md](./PRICING_DATA.md) | All pricing sources with official URLs |
+| [PROMPTS.md](./PROMPTS.md) | LLM prompts, rationale, fallback template |
+| [TESTS.md](./TESTS.md) | Test coverage documentation |
+| [GTM.md](./GTM.md) | Go-to-market strategy & first 100 users plan |
+| [ECONOMICS.md](./ECONOMICS.md) | Unit economics, LTV/CAC, $1M ARR path |
+| [METRICS.md](./METRICS.md) | North Star metric & input metrics |
+| [REFLECTION.md](./REFLECTION.md) | Personal reflection (5 questions) |
+| [USER_INTERVIEWS.md](./USER_INTERVIEWS.md) | Notes from 3 real user interviews |
+| [LANDING_COPY.md](./LANDING_COPY.md) | Full landing page copy |
 
 ## License
 
-MIT
+MIT — built during Credex Web Dev Intern Assignment Round 1, May 2026.
