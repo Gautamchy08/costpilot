@@ -65,17 +65,51 @@
 - Build the audit results page with per-tool breakdown and hero savings banner
 - Wire up the form → audit → results flow
 
-## Day 3 — 2026-05-22
+## Day 3 — 2026-05-23
 
-**Hours worked:**
+**Hours worked:** 4
 
 **What I did:**
+- Built the complete rule-based audit engine (`src/lib/audit-engine.ts`) with 4 recommendation types:
+  - **Plan right-sizing**: detects team/enterprise plans used by ≤3 users and recommends individual plans
+  - **Same-vendor downgrade**: finds cheaper plans from the same vendor that fit usage pattern
+  - **Cross-vendor alternatives**: suggests competing tools (e.g., Windsurf Pro at $15/seat vs Cursor Pro at $20/seat)
+  - **Credex credit savings**: surfaces 15–25% additional savings for well-optimized stacks
+  - **Honest "already optimal"**: clearly tells users when no meaningful savings are available
+- Installed Vitest and wrote 7 unit tests covering all audit engine paths — all 7 pass
+  - Plan right-sizing test (Cursor Teams for 2 users)
+  - Same-vendor downgrade test (ChatGPT Pro $200 → Plus $20)
+  - Cross-vendor alternative test (Cursor → Windsurf)
+  - Savings calculation accuracy test (math verification)
+  - Edge case: free plans / $0 spend (no false recommendations)
+  - Already-optimal honest detection test
+  - High-savings flag test (>$500/mo)
+- Built the audit results page (`src/app/results/page.tsx`) with:
+  - Animated hero savings banner (total monthly + annual savings in large text)
+  - Per-tool breakdown cards with expand/collapse for detailed reasoning
+  - Conditional Credex CTA — only shown when savings > $500/mo
+  - "You're Spending Well" state for already-optimal audits
+  - Email capture section appearing after 3 seconds (post-value)
+  - Share report + Run Another Audit actions
+- Wired full flow: form submit → save state → navigate to `/results` → run audit → render results
+- Fixed TypeScript error: Zod schema needed `z.enum()` for `toolId` (not `z.string()`) to match `ToolId` union type
 
 **What I learned:**
+- Zod infers types from schemas — `z.string()` gives you `string`, but `z.enum([...])` gives you the literal union type needed to satisfy `ToolId`. Always use `z.enum()` for discriminated unions.
+- Rule-based financial logic needs careful layering: check most impactful fix first (right-sizing > same-vendor > cross-vendor > credits), then fall through to "already optimal" — not all checks simultaneously
+- The "already optimal" path is as important as the savings path. Users who are spending well should be told that honestly — it builds trust more than padding fake savings
 
 **Blockers / what I'm stuck on:**
+- Firebase not yet set up (need project + credentials from console.firebase.google.com)
+- Gemini API key needed for the AI summary feature
+- Resend account needed for email confirmations
 
 **Plan for tomorrow:**
+- Set up Firebase project and Firestore collections (audits, leads)
+- Build Gemini API integration for 100-word personalized audit summary
+- Build lead capture form with email input and Resend confirmation
+- Create API routes: POST /api/audit, POST /api/lead, POST /api/summary
+- Add basic rate limiting to API routes
 
 ## Day 4 — 2026-05-23
 
