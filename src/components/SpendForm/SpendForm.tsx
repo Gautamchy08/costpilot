@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { cn, formatCurrency } from "@/lib/utils";
 import { TOOLS } from "@/lib/pricing-data";
@@ -13,7 +14,16 @@ import { Sparkles, Users, ArrowRight, RotateCcw } from "lucide-react";
 
 // ─── Zod Validation ────────────────────────────────────────────────────
 const toolEntrySchema = z.object({
-  toolId: z.string().min(1),
+  toolId: z.enum([
+    "cursor",
+    "github-copilot",
+    "claude",
+    "chatgpt",
+    "anthropic-api",
+    "openai-api",
+    "gemini",
+    "windsurf",
+  ]),
   planId: z.string().min(1),
   monthlySpend: z.number().min(0),
   seats: z.number().int().min(1),
@@ -79,6 +89,7 @@ function AnimatedTotal({ value }: { value: number }) {
 
 // ─── Main Form ─────────────────────────────────────────────────────────
 export default function SpendForm() {
+  const router = useRouter();
   const [formState, setFormState] = useState<AuditInput>(DEFAULT_STATE);
   const [errors, setErrors] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(false);
@@ -160,11 +171,9 @@ export default function SpendForm() {
       setErrors(result.error.issues.map((i) => i.message));
       return;
     }
-    // For now, log the validated data
-    console.log("✅ CostPilot Audit Input:", result.data);
-    alert(
-      `Audit submitted! Total monthly spend: ${formatCurrency(totalMonthlySpend)}\n\nCheck the console for form data.`
-    );
+    // Save final state then navigate to results
+    saveFormState(result.data);
+    router.push("/results");
   };
 
   const handleReset = () => {
