@@ -111,17 +111,38 @@
 - Create API routes: POST /api/audit, POST /api/lead, POST /api/summary
 - Add basic rate limiting to API routes
 
-## Day 4 — 2026-05-23
+## Day 4 — 2026-05-24
 
-**Hours worked:**
+**Hours worked:** 4
 
 **What I did:**
+- Installed Firebase SDK, `@google/generative-ai`, and `resend` packages
+- Created Firebase singleton initialization (`src/lib/firebase.ts`) — prevents duplicate app creation during Next.js hot reload
+- Created Firestore helper functions (`src/lib/db.ts`) — `saveAudit()`, `getAudit()`, `saveLead()` cleanly separated from Firebase init
+- Built Gemini AI summary module (`src/lib/gemini.ts`) — calls Gemini 1.5 Flash API to generate a personalized 80–120 word audit summary, with a graceful fallback template for when the API is unavailable
+- Created 3 API routes with IP-based rate limiting:
+  - `POST /api/audit` — saves audit result to Firestore (20 req/hr per IP)
+  - `POST /api/summary` — calls Gemini for personalized summary (10 req/hr per IP)
+  - `POST /api/lead` — saves lead to Firestore + sends HTML confirmation email via Resend (5 req/hr per IP)
+- Built `LeadCaptureForm` component with honeypot spam protection, loading/success/error states, and conditional messaging based on savings amount
+- Upgraded `AuditResults` component to: auto-save audit to Firestore on load, fetch AI summary from Gemini, and render the real `LeadCaptureForm` (replaces the static email input from Day 3)
+- Confirmation email is a full branded HTML email (dark theme matching the app) sent from `onboarding@resend.dev`
 
 **What I learned:**
+- Firebase needs singleton initialization in Next.js — without `getApps().length === 0` check, hot reload creates duplicate app instances and throws errors
+- Gemini API uses `system_instruction` as a separate field (not part of `contents`) — passing it inside contents causes the model to ignore tone/style instructions
+- Honeypot fields must be hidden with `style={{ display: "none" }}` not `type="hidden"` — bots specifically look for and fill hidden inputs, but skip visually hidden ones
+- Resend's free tier only allows sending from `onboarding@resend.dev` without domain verification — perfectly fine for MVP
 
 **Blockers / what I'm stuck on:**
+- Need to deploy to Vercel (Day 5) to test Firebase and Resend in production environment
+- Shareable report URL not yet built — currently share button just copies the `/results` URL which loses state on refresh
 
 **Plan for tomorrow:**
+- Deploy to Vercel with all environment variables
+- Build shareable report URL (`/report/[id]`) — fetch audit from Firestore, render public view with PII stripped
+- Add dynamic Open Graph tags for social sharing
+- Final CI/CD pipeline verification
 
 ## Day 5 — 2026-05-24
 
