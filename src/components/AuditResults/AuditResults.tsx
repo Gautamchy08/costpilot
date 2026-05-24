@@ -13,8 +13,10 @@ import {
   DollarSign,
   ChevronDown,
   ChevronUp,
+  Loader2,
 } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
+import LeadCaptureForm from "@/components/LeadCapture/LeadCaptureForm";
 import type { AuditResult, ToolRecommendation, RecommendedAction } from "@/types";
 
 // ─── Action config ────────────────────────────────────────────────────────
@@ -57,19 +59,15 @@ function RecommendationCard({ rec }: { rec: ToolRecommendation }) {
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden transition-all duration-300 hover:border-white/20">
-      {/* Header row */}
       <div className="flex items-center gap-4 p-5">
-        {/* Tool name */}
         <div className="flex-1 min-w-0">
           <p className="text-sm text-white/50 mb-0.5">Tool</p>
           <p className="font-semibold text-white text-base">{rec.toolName}</p>
           <p className="text-xs text-white/40 mt-0.5">{rec.currentPlan}</p>
         </div>
 
-        {/* Arrow */}
         <ArrowRight className="h-4 w-4 text-white/20 flex-shrink-0" />
 
-        {/* Recommendation */}
         <div className="flex-1 min-w-0">
           <p className="text-sm text-white/50 mb-0.5">Recommendation</p>
           <div className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium", cfg.color)}>
@@ -79,7 +77,6 @@ function RecommendationCard({ rec }: { rec: ToolRecommendation }) {
           <p className="text-xs text-white/60 mt-1.5 truncate">{rec.recommendedPlan}</p>
         </div>
 
-        {/* Savings */}
         <div className="text-right flex-shrink-0">
           <p className="text-sm text-white/50 mb-0.5">Monthly Savings</p>
           <p className={cn("text-xl font-bold", hasSavings ? "text-emerald-400" : "text-white/30")}>
@@ -90,7 +87,6 @@ function RecommendationCard({ rec }: { rec: ToolRecommendation }) {
           )}
         </div>
 
-        {/* Expand */}
         <button
           onClick={() => setExpanded(!expanded)}
           className="p-1.5 rounded-lg text-white/30 hover:text-white/70 hover:bg-white/5 transition-colors cursor-pointer"
@@ -99,7 +95,6 @@ function RecommendationCard({ rec }: { rec: ToolRecommendation }) {
         </button>
       </div>
 
-      {/* Expanded reason */}
       {expanded && (
         <div className="px-5 pb-5 border-t border-white/5 pt-4">
           <p className="text-xs text-white/40 mb-1.5 uppercase tracking-wider font-medium">Why we recommend this</p>
@@ -121,13 +116,48 @@ function RecommendationCard({ rec }: { rec: ToolRecommendation }) {
 export default function AuditResults({ result }: { result: AuditResult }) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
-  const [showEmailCapture, setShowEmailCapture] = useState(false);
+  const [showLeadCapture, setShowLeadCapture] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
 
-  // Show email capture after 3 seconds
+  // Fetch AI summary + save audit to Firestore on mount
   useEffect(() => {
-    const t = setTimeout(() => setShowEmailCapture(true), 3000);
+    const init = async () => {
+      // 1. Save audit to Firestore (fire and forget)
+      try {
+        await fetch("/api/audit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ audit: result }),
+        });
+      } catch (err) {
+        console.error("Failed to save audit:", err);
+      }
+
+      // 2. Get AI summary from Gemini
+      try {
+        const res = await fetch("/api/summary", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ audit: result }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setAiSummary(data.summary);
+        }
+      } catch (err) {
+        console.error("Failed to get summary:", err);
+      } finally {
+        setSummaryLoading(false);
+      }
+    };
+
+    init();
+
+    // Show lead capture after 4 seconds
+    const t = setTimeout(() => setShowLeadCapture(true), 4000);
     return () => clearTimeout(t);
-  }, []);
+  }, [result]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -150,10 +180,9 @@ export default function AuditResults({ result }: { result: AuditResult }) {
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-12 sm:px-6">
 
-        {/* ── Hero Savings Banner ───────────────────────────────────── */}
-        <div className="animate-fade-in-up mb-10">
+        {/* ── Hero Savings Banner ──────────────────────────────────── */}
+        <div className="animate-fade-in-up mb-8">
           {result.isAlreadyOptimal ? (
-            /* Already Optimal */
             <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-8 text-center">
               <div className="flex justify-center mb-4">
                 <div className="rounded-full bg-emerald-500/20 p-4">
@@ -166,26 +195,20 @@ export default function AuditResults({ result }: { result: AuditResult }) {
                 <span className="text-white font-semibold">{formatCurrency(result.totalMonthlySpend)}/mo</span>
               </p>
               <p className="text-sm text-white/40 max-w-md mx-auto">
-                We found less than {formatCurrency(100)}/mo in potential savings. Sign up below
-                and we&apos;ll notify you when new optimizations apply to your stack.
+                We found less than {formatCurrency(100)}/mo in savings. We&apos;ll notify you when new pricing or alternatives change this.
               </p>
             </div>
           ) : (
-            /* Savings Found */
             <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-cyan-500/20 backdrop-blur-xl p-8 text-center animate-pulse-glow">
-              <p className="text-white/60 text-sm font-medium uppercase tracking-widest mb-2">
-                Your audit is complete
-              </p>
+              <p className="text-white/60 text-sm font-medium uppercase tracking-widest mb-2">Your audit is complete</p>
               <h1 className="text-5xl sm:text-7xl font-black text-white mb-1">
                 {formatCurrency(result.totalMonthlySavings)}
                 <span className="text-2xl sm:text-3xl font-normal text-white/50">/mo</span>
               </h1>
               <p className="text-xl text-white/70 mb-1">in potential savings found</p>
-              <p className="text-3xl font-bold gradient-text">
-                {formatCurrency(result.totalAnnualSavings)}/year
-              </p>
+              <p className="text-3xl font-bold gradient-text">{formatCurrency(result.totalAnnualSavings)}/year</p>
               <div className="mt-4 flex items-center justify-center gap-3 text-sm text-white/50">
-                <span>Current spend: <span className="text-white">{formatCurrency(result.totalMonthlySpend)}/mo</span></span>
+                <span>Current: <span className="text-white">{formatCurrency(result.totalMonthlySpend)}/mo</span></span>
                 <span>·</span>
                 <span>Savings: <span className="text-emerald-400">{result.savingsPercentage}%</span></span>
               </div>
@@ -193,7 +216,23 @@ export default function AuditResults({ result }: { result: AuditResult }) {
           )}
         </div>
 
-        {/* ── Credex CTA (high savings only) ────────────────────────── */}
+        {/* ── AI Summary ──────────────────────────────────────────── */}
+        <div className="animate-fade-in-up delay-100 mb-8 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="h-4 w-4 text-indigo-400" />
+            <p className="text-sm font-semibold text-white/70 uppercase tracking-wider">AI Summary</p>
+          </div>
+          {summaryLoading ? (
+            <div className="flex items-center gap-3 text-white/40">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <p className="text-sm">Generating personalized summary…</p>
+            </div>
+          ) : (
+            <p className="text-white/80 text-sm leading-relaxed">{aiSummary}</p>
+          )}
+        </div>
+
+        {/* ── Credex CTA (high savings only) ──────────────────────── */}
         {result.isHighSavings && (
           <div className="animate-fade-in-up delay-100 mb-8 rounded-2xl border border-purple-500/30 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 backdrop-blur-xl p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -203,12 +242,8 @@ export default function AuditResults({ result }: { result: AuditResult }) {
               <div className="flex-1">
                 <p className="font-semibold text-white">Capture Even More Savings with Credex</p>
                 <p className="text-sm text-white/60 mt-0.5">
-                  You have significant AI spend ({formatCurrency(result.totalMonthlySpend)}/mo). Credex sources
-                  discounted AI infrastructure credits at 15–30% below retail. That&apos;s an additional{" "}
-                  <span className="text-purple-400 font-semibold">
-                    {formatCurrency(Math.round(result.totalMonthlySpend * 0.2))}/mo
-                  </span>{" "}
-                  on top of your plan optimizations.
+                  You have significant AI spend ({formatCurrency(result.totalMonthlySpend)}/mo). Credex sources discounted AI credits at 15–30% below retail — an additional{" "}
+                  <span className="text-purple-400 font-semibold">{formatCurrency(Math.round(result.totalMonthlySpend * 0.2))}/mo</span> on top of plan optimizations.
                 </p>
               </div>
               <a
@@ -224,12 +259,10 @@ export default function AuditResults({ result }: { result: AuditResult }) {
           </div>
         )}
 
-        {/* ── Per-Tool Breakdown ────────────────────────────────────── */}
-        <div className="animate-fade-in-up delay-200 mb-10">
+        {/* ── Per-Tool Breakdown ───────────────────────────────────── */}
+        <div className="animate-fade-in-up delay-200 mb-8">
           <h2 className="text-xl font-bold text-white mb-1">Per-Tool Breakdown</h2>
-          <p className="text-sm text-white/40 mb-5">
-            Click any row to see the full reasoning behind each recommendation.
-          </p>
+          <p className="text-sm text-white/40 mb-5">Click any row to see the full reasoning behind each recommendation.</p>
           <div className="space-y-3">
             {sortedRecs.map((rec) => (
               <RecommendationCard key={rec.toolId} rec={rec} />
@@ -237,37 +270,19 @@ export default function AuditResults({ result }: { result: AuditResult }) {
           </div>
         </div>
 
-        {/* ── Email Capture ─────────────────────────────────────────── */}
-        {showEmailCapture && (
-          <div className="animate-fade-in-up mb-10 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
-            <h3 className="font-semibold text-white mb-1">
-              {result.isAlreadyOptimal
-                ? "Get notified when savings open up"
-                : "Save & share your full report"}
-            </h3>
-            <p className="text-sm text-white/50 mb-4">
-              Enter your email to get a copy of this audit. No spam — one email, your report, done.
-            </p>
-            <div className="flex gap-3">
-              <input
-                type="email"
-                placeholder="you@company.com"
-                className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-white/30 outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all text-sm"
-              />
-              <button className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 hover:opacity-90 transition-opacity px-5 py-3 text-sm font-semibold text-white cursor-pointer">
-                Get Report
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
-            <p className="text-xs text-white/30 mt-2">
-              {result.isHighSavings
-                ? "High-savings report — Credex may reach out about credit availability for your stack."
-                : "We'll notify you when new pricing changes create savings opportunities for your stack."}
-            </p>
+        {/* ── Lead Capture ─────────────────────────────────────────── */}
+        {showLeadCapture && (
+          <div className="animate-fade-in-up mb-8">
+            <LeadCaptureForm
+              auditId={result.id}
+              savingsAmount={result.totalMonthlySavings}
+              isHighSavings={result.isHighSavings}
+              isAlreadyOptimal={result.isAlreadyOptimal}
+            />
           </div>
         )}
 
-        {/* ── Action Buttons ────────────────────────────────────────── */}
+        {/* ── Action Buttons ───────────────────────────────────────── */}
         <div className="animate-fade-in-up delay-300 flex flex-col sm:flex-row gap-3">
           <button
             onClick={handleCopyLink}
@@ -285,12 +300,9 @@ export default function AuditResults({ result }: { result: AuditResult }) {
           </button>
         </div>
 
-        {/* Footer note */}
         <p className="text-center text-xs text-white/20 mt-8">
           Pricing data sourced from official vendor pages · Last verified 2026-05-20 ·{" "}
-          <a href="https://credex.rocks" className="hover:text-white/40 transition-colors">
-            Built by Credex
-          </a>
+          <a href="https://credex.rocks" className="hover:text-white/40 transition-colors">Built by Credex</a>
         </p>
       </div>
     </div>
