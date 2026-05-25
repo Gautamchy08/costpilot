@@ -144,17 +144,45 @@
 - Add dynamic Open Graph tags for social sharing
 - Final CI/CD pipeline verification
 
-## Day 5 — 2026-05-24
+## Day 5 — 2026-05-25
 
-**Hours worked:**
+**Hours worked:** 4
 
 **What I did:**
+- Added Firestore security rules (`firestore.rules`) — audits are publicly readable by ID (shareable links) but not listable; leads are write-only (PII protection)
+- Built shareable report page (`/report/[id]`) as a Next.js server component:
+  - Fetches audit from Firestore server-side using the Firestore doc ID
+  - Renders `ShareableReport` client component — full read-only view with savings banner, per-tool breakdown, Credex CTA, Twitter share button
+  - `notFound()` for invalid IDs
+  - CTA button prompting visitors to audit their own stack (viral loop)
+- Added dynamic Open Graph metadata per report (`generateMetadata`):
+  - Title: `"I found $X/mo in AI tool savings — CostPilot"`
+  - Description includes exact savings numbers
+  - Twitter card `summary_large_image` format
+  - Per-report OG URL
+- Updated root layout with `metadataBase` — required for absolute OG URLs to work correctly on Vercel
+- Updated `AuditResults` component:
+  - Now captures the Firestore doc ID returned from `POST /api/audit`
+  - Share button copies `/report/[id]` URL (permanent, not `/results` which loses state)
+  - Added "Share on X (Twitter)" button with pre-filled tweet text
+- Added `firebase.json` hosting config for SPA routing
 
 **What I learned:**
+- Next.js requires `metadataBase` in root layout for OG image URLs to work — without it, relative URLs in `openGraph.images` are silently broken
+- Server components can read from Firebase directly (no SDK initialization issues) because they run on Node.js, not the browser
+- For viral loops: the shareable report page must have a prominent CTA to audit the viewer's own stack — not just display results
 
 **Blockers / what I'm stuck on:**
+- Vercel deployment needs to be done manually (user needs to connect GitHub repo to Vercel and add env vars)
+- OG image (actual image preview) not yet implemented — currently using text-only cards
 
-**Plan for tomorrow:**
+**Plan for tomorrow (Day 6 — Final):**
+- Final polish: fix any UI rough edges found during testing
+- Complete `REFLECTION.md` in own words (must be personal, can't be generated)
+- Update `USER_INTERVIEWS.md` with interview findings
+- Final README update with live Vercel URL
+- Record Loom demo walkthrough
+- Final commit and submission prep
 
 ## Day 6 — 2026-05-25
 
