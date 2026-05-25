@@ -9,6 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://costpilot.app"
+  ),
   title: "CostPilot — Stop Overpaying for AI Tools",
   description:
     "Free 2-minute audit reveals exactly where your team is overspending on AI tools — and how to save up to 40%. Analyze Cursor, Copilot, Claude, ChatGPT, and more.",
@@ -26,6 +29,7 @@ export const metadata: Metadata = {
       "Free 2-minute audit reveals exactly where your team is overspending on AI — and how to save up to 40%.",
     type: "website",
     siteName: "CostPilot",
+    url: process.env.NEXT_PUBLIC_APP_URL ?? "https://costpilot.app",
     locale: "en_US",
   },
   twitter: {
