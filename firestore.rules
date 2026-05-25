@@ -1,0 +1,20 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Audits — anyone can create, anyone can read by ID (for shareable links)
+    // No list access (can't enumerate all audits)
+    match /audits/{auditId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+
+    // Leads — anyone can create (form submission), no read access (PII protection)
+    match /leads/{leadId} {
+      allow create: if true;
+      allow read, update, delete: if false;
+    }
+  }
+}
