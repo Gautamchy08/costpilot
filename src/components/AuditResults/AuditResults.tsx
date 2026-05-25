@@ -119,17 +119,25 @@ export default function AuditResults({ result }: { result: AuditResult }) {
   const [showLeadCapture, setShowLeadCapture] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
+  const [firestoreId, setFirestoreId] = useState<string | null>(null);
+
+  const appUrl = typeof window !== "undefined" ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL ?? "");
+  const shareUrl = firestoreId ? `${appUrl}/report/${firestoreId}` : `${appUrl}/results`;
 
   // Fetch AI summary + save audit to Firestore on mount
   useEffect(() => {
     const init = async () => {
-      // 1. Save audit to Firestore (fire and forget)
+      // 1. Save audit to Firestore — capture the Firestore doc ID
       try {
-        await fetch("/api/audit", {
+        const saveRes = await fetch("/api/audit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ audit: result }),
         });
+        if (saveRes.ok) {
+          const saveData = await saveRes.json();
+          if (saveData.id) setFirestoreId(saveData.id);
+        }
       } catch (err) {
         console.error("Failed to save audit:", err);
       }
@@ -160,7 +168,7 @@ export default function AuditResults({ result }: { result: AuditResult }) {
   }, [result]);
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+    navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -291,6 +299,16 @@ export default function AuditResults({ result }: { result: AuditResult }) {
             <Share2 className="h-4 w-4" />
             {copied ? "Link Copied!" : "Share Report"}
           </button>
+          {firestoreId && (
+            <a
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`My team found $${result.totalMonthlySavings}/mo in AI tool savings with CostPilot 🚀 Free 2-min audit →`)}&url=${encodeURIComponent(shareUrl)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 flex-1 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors px-6 py-4 text-sm font-semibold text-white cursor-pointer"
+            >
+              Share on X (Twitter)
+            </a>
+          )}
           <button
             onClick={() => router.push("/audit")}
             className="flex items-center justify-center gap-2 flex-1 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors px-6 py-4 text-sm font-semibold text-white cursor-pointer"
