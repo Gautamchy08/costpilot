@@ -1,28 +1,11 @@
-// Public shareable report page
-// Route: /report/[id]
-// Fetches audit from Firestore, renders read-only view (no PII)
-
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getAudit } from "@/lib/db";
 import type { AuditResult } from "@/types";
 import ShareableReport from "@/components/ShareableReport/ShareableReport";
 
 interface Props {
   params: Promise<{ id: string }>;
-}
-
-// Fetch audit server-side for OG metadata
-async function getAudit(id: string): Promise<AuditResult | null> {
-  try {
-    const ref = doc(db, "audits", id);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return null;
-    return snap.data() as AuditResult;
-  } catch {
-    return null;
-  }
 }
 
 // Dynamic Open Graph metadata for each report
