@@ -8,17 +8,27 @@ Built for engineering managers and startup founders who pay for AI tools but hav
 
 > 🎥 **[Watch 30-second demo (Loom)](https://loom.com)** — *link to be added after deployment*
 
-| Landing Page | Spend Input Form | Audit Results |
-|:---:|:---:|:---:|
-| ✅ Built | ✅ Built | 🔄 Day 3 |
+| Landing Page | Spend Input Form | Audit Results | Shareable Report |
+|:---:|:---:|:---:|:---:|
+| ✅ Built | ✅ Built | ✅ Built | ✅ Built |
 
-*Full screenshots will be added after Vercel deployment on Day 5.*
+*Deploy to Vercel to see live screenshots.*
 
 ## 🔗 Live Demo
 
-> **Live:** [https://costpilot.vercel.app](https://costpilot.vercel.app) — *deploying Day 5*
+> **Live:** *Add your Vercel URL here after deployment*
 
 **GitHub Repo:** [https://github.com/Gautamchy08/costpilot](https://github.com/Gautamchy08/costpilot)
+
+## ⚡ Deploy to Vercel (5 minutes)
+
+1. Go to [vercel.com](https://vercel.com) → **Add New Project**
+2. Import from GitHub → select `Gautamchy08/costpilot`
+3. Add all environment variables from `.env.example`
+4. Click **Deploy**
+5. Update `NEXT_PUBLIC_APP_URL` in Vercel dashboard with your live URL
+
+> All 9 routes deploy automatically. No extra configuration needed.
 
 ## 🚀 Quick Start
 
