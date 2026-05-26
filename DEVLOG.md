@@ -186,17 +186,37 @@
 
 ## Day 6 — 2026-05-25
 
-**Hours worked:**
+**Hours worked:** 4
 
 **What I did:**
+- Added `vercel.json` deployment config with security headers (HSTS, X-Frame-Options, XSS protection) for API routes and all pages
+- Built custom 404 Not Found page (`src/app/not-found.tsx`) matching the dark theme — helpful message for expired/invalid report links with CTA to run fresh audit
+- Created dynamic OG image API (`GET /api/og`) using Next.js `ImageResponse` at the edge:
+  - Generates branded 1200×630 PNG with actual savings numbers per report
+  - Dark gradient background with glowing orbs matching app aesthetic
+  - Shows "$X/mo in AI tool savings" or "Already Optimized ✓" depending on result
+  - Runs at the edge (no cold start delay)
+- Wired OG image URL into `/report/[id]` `generateMetadata` — Twitter/LinkedIn now show rich image previews when sharing
+- Added global error boundary (`global-error.tsx`) — catches unhandled React errors with user-friendly retry UI
+- Verified all 7 unit tests still pass (`npm run test`)
+- Final production build clean — 10 routes including new `/api/og` edge function
 
 **What I learned:**
+- Next.js `ImageResponse` (from `next/og`) renders React JSX to PNG at the edge — no Puppeteer/Playwright needed, works in Vercel Edge Runtime
+- `ImageResponse` only supports inline styles (no Tailwind) and a subset of CSS — flexbox works, grid does not
+- Global error boundaries in Next.js App Router use `global-error.tsx` (not `error.tsx`) and must include their own `<html>` and `<body>` tags because they replace the root layout
 
 **Blockers / what I'm stuck on:**
+- Live Vercel URL not yet available (user needs to deploy manually from vercel.com)
+- `USER_INTERVIEWS.md` and `REFLECTION.md` must be filled by the user — these cannot be AI-generated
 
-**Plan for tomorrow:**
+**Plan for tomorrow (Day 7 — Submission):**
+- User deploys to Vercel, adds live URL to README
+- User completes REFLECTION.md in their own words
+- User fills USER_INTERVIEWS.md with real interview notes
+- Final submission commit and GitHub link ready
 
-## Day 7 — 2026-05-26
+## Day 7 — 2026-05-27
 
 **Hours worked:**
 
