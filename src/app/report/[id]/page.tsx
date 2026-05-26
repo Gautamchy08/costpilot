@@ -50,6 +50,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://costpilot.app";
 
+  const ogImageUrl = `${appUrl}/api/og?savings=${savings}&spend=${spend}&team=${audit.input.teamSize}`;
+
   return {
     title,
     description,
@@ -59,11 +61,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `${appUrl}/report/${id}`,
       siteName: "CostPilot",
       type: "website",
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: [ogImageUrl],
     },
   };
 }
